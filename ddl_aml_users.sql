@@ -1,0 +1,10 @@
+CREATE TABLE aml_users(
+"ID" number,
+username VARCHAR2(16),
+"PASSWORD" VARCHAR2(32),
+first_name VARCHAR2(50),
+last_name VARCHAR2(50),
+email VARCHAR2(1000),
+CONSTRAINT "AML_USERS_PK" PRIMARY KEY ("ID") ENABLE
+)
+/
