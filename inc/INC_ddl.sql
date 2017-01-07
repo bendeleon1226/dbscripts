@@ -1,11 +1,68 @@
-CREATE TABLE HERO(
-  hero_id NUMBER,
-  hero_name VARCHAR2(24) NOT NULL,
+CREATE TABLE INC_TOPICS(
+  topic_id NUMBER,
+  topic_description VARCHAR2(24) NOT NULL,
   created_date DATE DEFAULT SYSDATE,
-  MODIFIED_DATE DATE,
+  modified_date DATE,
   CONSTRAINT "HERO_PK" PRIMARY KEY ("HERO_ID") ENABLE
 )
 /
+
+CREATE TABLE INC_VERSES(
+  inc_verse_id NUMBER,
+  book_version_id, 
+  book_list_id,
+  book_chapter_id,
+  book_verse_id,
+  created_date DATE,
+  modified_date DATE,
+  topic_id
+  CONSTRAINT "HERO_PK" PRIMARY KEY ("HERO_ID") ENABLE
+)
+/
+
+
+CREATE TABLE BOOK_VERSION(
+BOOK_VERSION_ID NUMBER,
+VERSION_NAME VARCHAR2(100),
+CONSTRAINT BOOK_VERSION_PK PRIMARY KEY (BOOK_VERSION_ID)
+)
+/
+
+CREATE TABLE BOOK_LIST (
+BOOK_LIST_ID NUMBER,
+BOOK_NAME VARCHAR2(100),
+IS_NEW_TESTAMENT CHAR(1),
+BOOK_CHAPTER_START NUMBER,
+BOOK_CHAPTER_END NUMBER,
+CONSTRAINT BOOK_LIST_PK PRIMARY KEY (BOOK_LIST_ID)
+)
+/
+
+CREATE TABLE BOOK_CHAPTER (
+BOOK_CHAPTER_ID NUMBER,
+BOOK_LIST_ID NUMBER,
+CHAPTER_NUMBER NUMBER,
+VERSE_START NUMBER,
+VERSE_END NUMBER,
+CONSTRAINT BOOK_CHAPTER_PK PRIMARY KEY (BOOK_CHAPTER_ID),
+CONSTRAINT BOOK_CHAPTER_FK FOREIGN KEY (BOOK_LIST_ID) REFERENCES BOOK_LIST(BOOK_LIST_ID)
+)
+/
+
+CREATE TABLE BOOK_VERSE (
+BOOK_VERSE_ID NUMBER,
+BOOK_VERSION_ID NUMBER,
+BOOK_CHAPTER_ID NUMBER,
+VERSE_NUMBER NUMBER,
+VERSE_MESSAGE VARCHAR2(512),
+CONSTRAINT BOOK_VERSE_PK PRIMARY KEY (VERSE_ID),
+CONSTRAINT BOOK_VERSE_FK1 FOREIGN KEY (BOOK_VERSION_ID) REFERENCES BOOK_VERSION(BOOK_VERSION_ID),
+CONSTRAINT BOOK_VERSE_FK2 FOREIGN KEY (BOOK_CHAPTER_ID) REFERENCES BOOK_CHAPTER(BOOK_CHAPTER_ID)
+)
+/
+
+
+
 
 CREATE TABLE ARDAN_GAME_HISTORY(
   ARDAN_VICTORY_HISTORY_ID NUMBER,
@@ -102,35 +159,6 @@ CREATE TABLE LYRA_GAME_HISTORY(
 )
 /
 
-CREATE TABLE GAMES(
-  GAME_ID NUMBER,
-  GAME_DATE DATE,
-  created_date DATE DEFAULT SYSDATE,
-  modified_date DATE,
-  CONSTRAINT "GAMES_PK" PRIMARY KEY ("GAME_ID") ENABLE
-)
-/
-
-CREATE TABLE GAME_HISTORY(
-  game_history_id NUMBER,
-  game_id NUMBER NOT NULL,
-  hero_id NUMBER NOT NULL,
-  is_victory CHAR(1) NOT NULL,
-  created_date DATE DEFAULT SYSDATE,
-  modified_date DATE,
-  CONSTRAINT "GAME_HISTORY_PK" PRIMARY KEY ("GAME_HISTORY_ID") ENABLE,
-  CONSTRAINT GAME_HISTORY_FK1 FOREIGN KEY (GAME_ID) REFERENCES GAMES(GAME_ID),
-  CONSTRAINT GAME_HISTORY_FK2 FOREIGN KEY (hero_id) REFERENCES HERO(HERO_ID)
-)
-/
-
-ALTER TABLE GAME_HISTORY
-ADD CONSTRAINT game_hero_unique UNIQUE(game_id, hero_id, is_victory);
-
--- Get the game history
-select game_history_id, game_id, GET_HERO_NAME(hero_id) hero_name, is_victory, created_date
-from GAME_HISTORY;
-
 -- Get the latest entry for Ardan
 select ardan.ardan_victory_history_id, ally1.hero_name, ally2.hero_name, ardan.is_victory
 from ARDAN_GAME_HISTORY ardan, HERO ally1, HERO ally2
@@ -138,21 +166,3 @@ where ardan.ally1_hero_id = ally1.hero_id
 and ardan.ally2_hero_id = ally2.hero_id
 and ardan.is_victory = 'Y'
 order by ardan.ardan_victory_history_id desc;
-
--- move statistics data to game_history table from ardan_game_history table
-select ardan_victory_history_id, get_hero_name(enemy1_hero_id), get_hero_name(enemy2_hero_id), get_hero_name(enemy3_hero_id)
-from ardan_game_history
-where ally1_hero_id = '60' -- Samuel
-and ally2_hero_id = '30' -- Taka
-and is_victory = 'Y';
-
-delete from ARDAN_GAME_HISTORY where ardan_victory_history_id = '11';
-
--- move statistics data to game_history table from ardan_game_history table
-select ardan_victory_history_id id, get_hero_name(ally1_hero_id) ally1, get_hero_name(ally2_hero_id) ally2, 
-       get_hero_name(enemy1_hero_id) enemy1, get_hero_name(enemy2_hero_id) enemy2, get_hero_name(enemy3_hero_id) enemy3
-from ardan_game_history
-where is_victory = 'Y'
-order by 1;
-
-delete from ARDAN_GAME_HISTORY where ardan_victory_history_id = '2';
